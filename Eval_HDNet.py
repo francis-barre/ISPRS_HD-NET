@@ -12,16 +12,16 @@ import logging
 import matplotlib
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 matplotlib.use('tkagg')
 batchsize = 16
 num_workers = 0
-read_name = 'HDNet_Mass_dice_best'
-Dataset = 'Mass'
+read_name = 'HDNet_Inria_best'
+Dataset = 'Inria'
 assert Dataset in ['WHU', 'Inria', 'Mass']
 net = HighResolutionDecoupledNet(base_channel=48, num_classes=1)
-print(sum(p.numel() for p in net.parameters()))
+print('Number of parameters: ', sum(p.numel() for p in net.parameters()))
 
 
 def eval_HRBR(net,
@@ -31,7 +31,7 @@ def eval_HRBR(net,
         dataset_dir=data_dir,
         training=False,
         txt_name="test.txt",
-        data_name="Mass")
+        data_name=Dataset)
     test_loader = DataLoader(testdataset,
                              batch_size=batch_size,
                              shuffle=False,
@@ -42,8 +42,8 @@ def eval_HRBR(net,
     print('Best iou:', best_score)
 
 
-data_dir = "/media/bimeiqiao/sda11/liyuxuan/data/Massachusetts/"
-dir_checkpoint = 'save_weights/'
+data_dir = "data/Inria/"
+dir_checkpoint = 'save_weights/pretrain/'
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)s: %(message)s')

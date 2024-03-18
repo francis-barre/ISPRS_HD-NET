@@ -44,8 +44,8 @@ class BuildingDataset(Dataset):
 
         else:
             mode = txt_name.split(".")[0]
-            self.imgs_dir = os.path.join(dataset_dir, mode, 'image')
-            self.labels_dir = os.path.join(dataset_dir, mode, 'label')
+            self.imgs_dir = os.path.join(dataset_dir, 'train', 'image')
+            self.labels_dir = os.path.join(dataset_dir, 'train', 'label')
             self.dis_dir = os.path.join(dataset_dir, 'boundary')
             txt_path = os.path.join(dataset_dir, "dataset", txt_name)
             assert os.path.exists(txt_path), "file '{}' does not exist.".format(txt_path)

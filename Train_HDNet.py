@@ -18,19 +18,19 @@ import time
 import datetime
 
 # 指定使用的GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
 matplotlib.use('tkagg')
 
-torch.set_num_threads(4)
-
+torch.set_num_threads(16)
 
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description="pytorch HDNet training")
     parser.add_argument('--lr', default=0.001, type=float,
                         help='initial learning rate')
-    parser.add_argument("-b", "--batch-size", default=4, type=int)
-    parser.add_argument("--epochs", default=1, type=int, metavar="N",
+    parser.add_argument("-b", "--batch-size", default=8, type=int)
+    parser.add_argument("--epochs", default=150, type=int, metavar="N",
                         help="number of total epochs to train")
     parser.add_argument(
         "--data-path",
