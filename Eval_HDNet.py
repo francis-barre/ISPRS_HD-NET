@@ -3,10 +3,6 @@ from utils.sync_batchnorm.batchnorm import convert_model
 from torch.utils.data import DataLoader
 from utils.dataset import BuildingDataset
 from eval.eval_HDNet import eval_net
-from tqdm import tqdm
-from torch import optim
-import torch.nn.functional as F
-import torch.nn as nn
 import torch
 import logging
 import matplotlib
@@ -55,7 +51,7 @@ if __name__ == '__main__':
             dir_checkpoint + read_name + '.pth', map_location=device)
         net_state_dict.update(state_dict)
         net.load_state_dict(net_state_dict, strict=False)  # 删除了down1-3
-        logging.info(f'Model loaded from ' + read_name + '.pth')
+        logging.info('Model loaded from ' + read_name + '.pth')
 
     net = convert_model(net)
     net = torch.nn.parallel.DataParallel(net.to(device))
