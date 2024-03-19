@@ -1,11 +1,9 @@
 import torch
 from torch.utils.data import DataLoader
-from utils.sync_batchnorm.batchnorm import convert_model
 from utils.dataset import BuildingDataset
 from model.HDNet import HighResolutionDecoupledNet
 import matplotlib
 import os
-import logging
 from tqdm import tqdm
 import cv2
 
@@ -21,7 +19,7 @@ net = HighResolutionDecoupledNet(base_channel=48, num_classes=1)
 print('Number of parameters: ', sum(p.numel() for p in net.parameters()))
 
 
-def main(net, device, batch_size, data_dir, weight_dir):
+def predict(net, device, batch_size, data_dir, weight_dir):
     dataset = BuildingDataset(
         dataset_dir=data_dir,
         training=False,
@@ -52,26 +50,26 @@ def main(net, device, batch_size, data_dir, weight_dir):
                 print('Save failed!')
 
 
-data_dir = "data/Inria/"
-dir_checkpoint = 'save_weights/pretrain/'
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO,
-                        format='%(levelname)s: %(message)s')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
-    if read_name != '':
-        net_state_dict = net.state_dict()
-        state_dict = torch.load(
-            dir_checkpoint + read_name + '.pth', map_location=device)
-        net_state_dict.update(state_dict)
-        net.load_state_dict(net_state_dict, strict=False)  # 删除了down1-3
-        logging.info('Model loaded from ' + read_name + '.pth')
+# data_dir = "data/Inria/"
+# dir_checkpoint = 'save_weights/pretrain/'
+# if __name__ == '__main__':
+#     logging.basicConfig(level=logging.INFO,
+#                         format='%(levelname)s: %(message)s')
+#     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#     logging.info(f'Using device {device}')
+#     if read_name != '':
+#         net_state_dict = net.state_dict()
+#         state_dict = torch.load(
+#             dir_checkpoint + read_name + '.pth', map_location=device)
+#         net_state_dict.update(state_dict)
+#         net.load_state_dict(net_state_dict, strict=False)  # 删除了down1-3
+#         logging.info('Model loaded from ' + read_name + '.pth')
 
-    net = convert_model(net)
-    net = torch.nn.parallel.DataParallel(net.to(device))
-    torch.backends.cudnn.benchmark = True
-    main(net=net,
-         batch_size=batchsize,
-         device=device,
-         data_dir=data_dir,
-         weight_dir=dir_checkpoint)
+#     net = convert_model(net)
+#     net = torch.nn.parallel.DataParallel(net.to(device))
+#     torch.backends.cudnn.benchmark = True
+#     predict(net=net,
+#          batch_size=batchsize,
+#          device=device,
+#          data_dir=data_dir,
+#          weight_dir=dir_checkpoint)
