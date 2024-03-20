@@ -1,3 +1,4 @@
+# %%
 import torch
 from torch.utils.data import DataLoader
 from utils.dataset import BuildingDataset
@@ -19,7 +20,7 @@ net = HighResolutionDecoupledNet(base_channel=48, num_classes=1)
 print('Number of parameters: ', sum(p.numel() for p in net.parameters()))
 
 
-def predict(net, device, batch_size, data_dir, weight_dir):
+def predict(net, device, batch_size, data_dir):
     dataset = BuildingDataset(
         dataset_dir=data_dir,
         training=False,
@@ -71,5 +72,6 @@ def predict(net, device, batch_size, data_dir, weight_dir):
 #     predict(net=net,
 #          batch_size=batchsize,
 #          device=device,
-#          data_dir=data_dir,
-#          weight_dir=dir_checkpoint)
+#          data_dir=data_dir)
+
+# %%
