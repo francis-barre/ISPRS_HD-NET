@@ -1,63 +1,80 @@
+from osgeo import gdal
+import scipy.io as io
+from imgaug import augmenters as iaa
+import torchvision.transforms.functional as transF
+from PIL import Image
+import logging
+from torch.utils.data import Dataset
 import os
-from os.path import splitext
-from os import listdir
 import numpy as np
 from PIL import ImageFile
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import torch
-from torch.utils.data import Dataset
-import logging
-from PIL import Image
-import torchvision.transforms.functional as transF
-from imgaug import augmenters as iaa
-import scipy.io as io
-from osgeo import gdal
 
 mean_std_dict = {
-    'WHU': ['WHU', [0.43526826, 0.44523221, 0.41307611], [0.20436029, 0.19237618, 0.20128716], '.tif'],
-    'Mass': ['Mass', [0.32208377, 0.32742606, 0.2946236], [0.18352227, 0.17701593, 0.18039343], '.tif'],
-    'Inria': ['Inria', [0.42314604, 0.43858219, 0.40343547], [0.18447358, 0.16981384, 0.1629876], '.tif']
+    'WHU': ['WHU', [0.43526826, 0.44523221, 0.41307611],
+            [0.20436029, 0.19237618, 0.20128716], '.tif'],
+    'Mass': ['Mass', [0.32208377, 0.32742606, 0.2946236],
+             [0.18352227, 0.17701593, 0.18039343], '.tif'],
+    'Inria': ['Inria', [0.42314604, 0.43858219, 0.40343547],
+              [0.18447358, 0.16981384, 0.1629876], '.tif'],
+    'NOCI': ['NOCI', [0.2804, 0.2793, 0.2627],
+             [0.2321, 0.2246, 0.2154], '.tif']
 }
 
 
 class BuildingDataset(Dataset):
-    def __init__(self, dataset_dir, training=False, txt_name: str = "train.txt", data_name='WHU'):
+    def __init__(self, dataset_dir, training=False,
+                 txt_name: str = "train.txt", data_name='WHU'):
         self.name, self.mean, self.std, self.shuffix = mean_std_dict[data_name]
         if self.name == 'Mass':
             self.imgs_dir = os.path.join(dataset_dir, 'TIFFImages')
             self.labels_dir = os.path.join(dataset_dir, 'SegmentationClass')
             self.dis_dir = os.path.join(dataset_dir, 'boundary')
-            txt_path = os.path.join(dataset_dir, "ImageSets", "Segmentation", txt_name)
-            assert os.path.exists(txt_path), "file '{}' does not exist.".format(txt_path)
+            txt_path = os.path.join(
+                dataset_dir, "ImageSets", "Segmentation", txt_name)
+            assert os.path.exists(
+                txt_path), "file '{}' does not exist.".format(txt_path)
             with open(os.path.join(txt_path), "r") as f:
-                file_names = [x.strip() for x in f.readlines() if len(x.strip()) > 0]
+                file_names = [x.strip()
+                              for x in f.readlines() if len(x.strip()) > 0]
             self.scale = 1
             self.training = training
-            self.name, self.mean, self.std, self.shuffix = mean_std_dict[data_name]
-            self.images = [os.path.join(self.imgs_dir, x + self.shuffix) for x in file_names]
-            self.labels = [os.path.join(self.labels_dir, x + self.shuffix) for x in file_names]
-            self.dis = [os.path.join(self.dis_dir, x + '.mat') for x in file_names]
-            assert (len(self.images) == len(self.labels)) & (len(self.images) == len(self.dis))
+            self.name, self.mean, self.std, self.shuffix = mean_std_dict[
+                data_name]
+            self.images = [os.path.join(
+                self.imgs_dir, x + self.shuffix) for x in file_names]
+            self.labels = [os.path.join(
+                self.labels_dir, x + self.shuffix) for x in file_names]
+            self.dis = [os.path.join(self.dis_dir, x + '.mat')
+                        for x in file_names]
+            assert (len(self.images) == len(self.labels)) & (
+                len(self.images) == len(self.dis))
 
             logging.info(f'Creating dataset with {len(self.images)} examples')
 
         else:
-            mode = txt_name.split(".")[0]
+            # mode = txt_name.split(".")[0]
             self.imgs_dir = os.path.join(dataset_dir, 'train', 'image')
             self.labels_dir = os.path.join(dataset_dir, 'train', 'label')
             self.dis_dir = os.path.join(dataset_dir, 'boundary')
             txt_path = os.path.join(dataset_dir, "dataset", txt_name)
-            assert os.path.exists(txt_path), "file '{}' does not exist.".format(txt_path)
+            assert os.path.exists(
+                txt_path), "file '{}' does not exist.".format(txt_path)
             with open(os.path.join(txt_path), "r") as f:
-                file_names = [x.strip() for x in f.readlines() if len(x.strip()) > 0]
+                file_names = [x.strip()
+                              for x in f.readlines() if len(x.strip()) > 0]
             self.scale = 1
             self.training = training
-            self.images = [os.path.join(self.imgs_dir, x + self.shuffix) for x in file_names]
-            self.labels = [os.path.join(self.labels_dir, x + self.shuffix) for x in file_names]
+            self.images = [os.path.join(
+                self.imgs_dir, x + self.shuffix) for x in file_names]
+            self.labels = [os.path.join(
+                self.labels_dir, x + self.shuffix) for x in file_names]
 
-            self.dis = [os.path.join(self.dis_dir, x + '.mat') for x in file_names]
-            assert (len(self.images) == len(self.labels)) & (len(self.images) == len(self.dis))
+            self.dis = [os.path.join(self.dis_dir, x + '.mat')
+                        for x in file_names]
+            assert (len(self.images) == len(self.labels)) & (
+                len(self.images) == len(self.dis))
 
             logging.info(f'Creating dataset with {len(self.images)} examples')
 
@@ -92,23 +109,33 @@ class BuildingDataset(Dataset):
             img_file = self.images[index]
             img = np.array(Image.open(img_file))
             label_file = self.labels[index]
-            label = np.array(Image.open(label_file).convert("P")).astype(np.int16) / 255.
+            label = np.array(Image.open(label_file).convert(
+                "P")).astype(np.int16) / 255.
         elif self.name == 'Inria':
             img_file = self.images[index]
             img = np.array(Image.open(img_file))
             label_file = self.labels[index]
-            label = np.array(Image.open(label_file).convert("P")).astype(np.int16) / 255.
+            label = np.array(Image.open(label_file).convert(
+                "P")).astype(np.int16) / 255.
+        elif self.name == 'NOCI':
+            img_file = self.images[index]
+            img = np.array(Image.open(img_file))
+            label_file = self.labels[index]
+            label = np.array(Image.open(label_file).convert(
+                "P")).astype(np.int16) / 255.
 
         # 利用_load_maps获取得到的distance_map和angle_map
         if self.training:
             distance_map = self._load_maps(self.dis[index])
             distance_map = np.array(distance_map)
             img, label = self.transform(image=img, segmentation_maps=np.stack(
-                (label[np.newaxis, :, :], distance_map[np.newaxis, :, :]), axis=-1).astype(np.int32))
+                (label[np.newaxis, :, :], distance_map[np.newaxis, :, :]),
+                axis=-1).astype(np.int32))
 
             label, distance_map = label[0, :, :, 0], label[0, :, :, 1]
 
-        img, label = transF.to_tensor(img.copy()), (transF.to_tensor(label.copy()) > 0).int()
+        img, label = transF.to_tensor(
+            img.copy()), (transF.to_tensor(label.copy()) > 0).int()
         # 标准化
         img = transF.normalize(img, self.mean, self.std)
         if self.training:
@@ -128,6 +155,6 @@ class BuildingDataset(Dataset):
 
 def readTif(fileName):
     dataset = gdal.Open(fileName)
-    if dataset == None:
+    if dataset is None:
         print(fileName + "can not open the file")
     return dataset

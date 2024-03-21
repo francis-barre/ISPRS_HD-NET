@@ -12,40 +12,9 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torch
 import logging
-import matplotlib
 import os
 import time
 import datetime
-
-# 指定使用的GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-# os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
-matplotlib.use('tkagg')
-
-torch.set_num_threads(16)
-
-
-def parse_args():
-    import argparse
-    parser = argparse.ArgumentParser(description="pytorch HDNet training")
-    parser.add_argument('--lr', default=0.001, type=float,
-                        help='initial learning rate')
-    parser.add_argument("-b", "--batch-size", default=8, type=int)
-    parser.add_argument("--epochs", default=150, type=int, metavar="N",
-                        help="number of total epochs to train")
-    parser.add_argument(
-        "--data-path",
-        default="data/Inria/")
-    parser.add_argument("--numworkers", default=0, type=int)
-    parser.add_argument("--num-classes", default=1, type=int)
-    parser.add_argument("--base-channel", default=48, type=int)
-    parser.add_argument("--device", default="cuda", help="training device")
-    parser.add_argument("--read-name", default='')
-    parser.add_argument("--save-name", default='HDNet_Inria_test')
-    parser.add_argument("--DataSet", default='Inria')
-    args = parser.parse_args()
-
-    return args
 
 
 def dice_loss_func(input, target):
@@ -83,6 +52,8 @@ def train_net(read_name,
               net,
               device,
               data_path,
+              args,
+              dir_checkpoint='save_weights/',
               epochs=5,
               batch_size=1,
               lr=0.001,
@@ -154,6 +125,21 @@ def train_net(read_name,
                               ).to(device=device).float()
                 (x_seg, x_bd, seg1, seg2, seg3, seg4, seg5, seg6,
                  bd1, bd2, bd3, bd4, bd5, bd6) = net(imgs)
+
+                x_seg = x_seg.to(device)
+                x_bd = x_bd.to(device)
+                seg1 = seg1.to(device)
+                seg2 = seg2.to(device)
+                seg3 = seg3.to(device)
+                seg4 = seg4.to(device)
+                seg5 = seg5.to(device)
+                seg6 = seg6.to(device)
+                bd1 = bd1.to(device)
+                bd2 = bd2.to(device)
+                bd3 = bd3.to(device)
+                bd4 = bd4.to(device)
+                bd5 = bd5.to(device)
+                bd6 = bd6.to(device)
 
                 # Mass: 3 / 9 WHU: 7 / 21 Inria: 10 / 30
                 loss = criterion(x_seg, true_labels, dice=True) + \
@@ -227,18 +213,22 @@ def train_net(read_name,
     print("training time {}".format(total_time_str))
 
 
-def main(args):
+def main(args, dir_checkpoint='save_weights/'):
     read_name = args.read_name
     save_name = args.save_name
     Dataset = args.DataSet
-    assert Dataset in ['WHU', 'Inria', 'Mass']
+    assert Dataset in ['WHU', 'Inria', 'Mass', 'NOCI']
     print(save_name)
     net = HighResolutionDecoupledNet(
         base_channel=args.base_channel, num_classes=args.num_classes)
     print('HDNet parameters: %d' % sum(p.numel() for p in net.parameters()))
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)s: %(message)s')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device_name = args.device
+    if device_name == 'cuda':
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    else:
+        device = torch.device('cpu')
     logging.info(f'Using device {device}')
     if read_name != '':
         net_state_dict = net.state_dict()
@@ -256,6 +246,8 @@ def main(args):
               DataSet=args.DataSet,
               net=net,
               device=device,
+              args=args,
+              dir_checkpoint=dir_checkpoint,
               data_path=args.data_path,
               epochs=args.epochs,
               batch_size=args.batch_size,
@@ -264,10 +256,10 @@ def main(args):
               )
 
 
-if __name__ == '__main__':
-    args = parse_args()
-    dir_checkpoint = 'save_weights/'
-    if not os.path.exists("./save_weights"):
-        os.mkdir("./save_weights")
+# if __name__ == '__main__':
+#     args = parse_args()
+#     dir_checkpoint = 'save_weights/'
+#     if not os.path.exists("./save_weights"):
+#         os.mkdir("./save_weights")
 
-    main(args)
+#     main(args)
