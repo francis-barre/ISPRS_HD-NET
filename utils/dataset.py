@@ -18,8 +18,8 @@ mean_std_dict = {
              [0.18352227, 0.17701593, 0.18039343], '.tif'],
     'Inria': ['Inria', [0.42314604, 0.43858219, 0.40343547],
               [0.18447358, 0.16981384, 0.1629876], '.tif'],
-    'NOCI': ['NOCI', [0.2804, 0.2793, 0.2627],
-             [0.2321, 0.2246, 0.2154], '.tif']
+    'NOCI': ['NOCI', [0.42538814, 0.42558973, 0.39810956],
+             [0.17131866, 0.15658791, 0.13814705], '.tif']
 }
 
 
@@ -28,11 +28,11 @@ class BuildingDataset(Dataset):
                  txt_name: str = "train.txt", data_name='WHU'):
         self.name, self.mean, self.std, self.shuffix = mean_std_dict[data_name]
         if self.name == 'Mass':
-            self.imgs_dir = os.path.join(dataset_dir, 'TIFFImages')
-            self.labels_dir = os.path.join(dataset_dir, 'SegmentationClass')
+            self.imgs_dir = os.path.join(dataset_dir, 'train', 'image')
+            self.labels_dir = os.path.join(dataset_dir, 'train', 'label')
             self.dis_dir = os.path.join(dataset_dir, 'boundary')
             txt_path = os.path.join(
-                dataset_dir, "ImageSets", "Segmentation", txt_name)
+                dataset_dir, "dataset", txt_name)
             assert os.path.exists(
                 txt_path), "file '{}' does not exist.".format(txt_path)
             with open(os.path.join(txt_path), "r") as f:
@@ -40,8 +40,6 @@ class BuildingDataset(Dataset):
                               for x in f.readlines() if len(x.strip()) > 0]
             self.scale = 1
             self.training = training
-            self.name, self.mean, self.std, self.shuffix = mean_std_dict[
-                data_name]
             self.images = [os.path.join(
                 self.imgs_dir, x + self.shuffix) for x in file_names]
             self.labels = [os.path.join(

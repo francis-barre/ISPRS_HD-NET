@@ -1,4 +1,4 @@
-# import random
+# %%  import random
 # import numpy as np
 # from PIL import Image
 from model.HDNet import HighResolutionDecoupledNet
@@ -15,6 +15,29 @@ import logging
 import os
 import time
 import datetime
+
+
+def parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(description="pytorch HDNet training")
+    parser.add_argument('--lr', default=0.001, type=float,
+                        help='initial learning rate')
+    parser.add_argument("-b", "--batch-size", default=8, type=int)
+    parser.add_argument("--epochs", default=150, type=int, metavar="N",
+                        help="number of total epochs to train")
+    parser.add_argument(
+        "--data-path",
+        default="data/model/")
+    parser.add_argument("--numworkers", default=0, type=int)
+    parser.add_argument("--num-classes", default=1, type=int)
+    parser.add_argument("--base-channel", default=48, type=int)
+    parser.add_argument("--device", default="cuda", help="training device")
+    parser.add_argument("--read-name", default='')
+    parser.add_argument("--save-name", default='HDNet_NOCI_test')
+    parser.add_argument("--DataSet", default='NOCI')
+    args = parser.parse_args()
+
+    return args
 
 
 def dice_loss_func(input, target):
@@ -256,10 +279,10 @@ def main(args, dir_checkpoint='save_weights/'):
               )
 
 
-# if __name__ == '__main__':
-#     args = parse_args()
-#     dir_checkpoint = 'save_weights/'
-#     if not os.path.exists("./save_weights"):
-#         os.mkdir("./save_weights")
+if __name__ == '__main__':
+    args = parse_args()
+    dir_checkpoint = 'save_weights/'
+    if not os.path.exists("./save_weights"):
+        os.mkdir("./save_weights")
 
-#     main(args)
+    main(args)
