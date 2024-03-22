@@ -27,14 +27,14 @@ def parse_args():
                         help="number of total epochs to train")
     parser.add_argument(
         "--data-path",
-        default="data/model/")
-    parser.add_argument("--numworkers", default=0, type=int)
+        default="data/Inria/")
+    parser.add_argument("--numworkers", default=8, type=int)
     parser.add_argument("--num-classes", default=1, type=int)
     parser.add_argument("--base-channel", default=48, type=int)
     parser.add_argument("--device", default="cuda", help="training device")
     parser.add_argument("--read-name", default='')
-    parser.add_argument("--save-name", default='HDNet_NOCI_test')
-    parser.add_argument("--DataSet", default='NOCI')
+    parser.add_argument("--save-name", default='HDNet_Inria_test')
+    parser.add_argument("--DataSet", default='Inria')
     args = parser.parse_args()
 
     return args
@@ -149,20 +149,20 @@ def train_net(read_name,
                 (x_seg, x_bd, seg1, seg2, seg3, seg4, seg5, seg6,
                  bd1, bd2, bd3, bd4, bd5, bd6) = net(imgs)
 
-                x_seg = x_seg.to(device)
-                x_bd = x_bd.to(device)
-                seg1 = seg1.to(device)
-                seg2 = seg2.to(device)
-                seg3 = seg3.to(device)
-                seg4 = seg4.to(device)
-                seg5 = seg5.to(device)
-                seg6 = seg6.to(device)
-                bd1 = bd1.to(device)
-                bd2 = bd2.to(device)
-                bd3 = bd3.to(device)
-                bd4 = bd4.to(device)
-                bd5 = bd5.to(device)
-                bd6 = bd6.to(device)
+                # x_seg = x_seg.to(device)
+                # x_bd = x_bd.to(device)
+                # seg1 = seg1.to(device)
+                # seg2 = seg2.to(device)
+                # seg3 = seg3.to(device)
+                # seg4 = seg4.to(device)
+                # seg5 = seg5.to(device)
+                # seg6 = seg6.to(device)
+                # bd1 = bd1.to(device)
+                # bd2 = bd2.to(device)
+                # bd3 = bd3.to(device)
+                # bd4 = bd4.to(device)
+                # bd5 = bd5.to(device)
+                # bd6 = bd6.to(device)
 
                 # Mass: 3 / 9 WHU: 7 / 21 Inria: 10 / 30
                 loss = criterion(x_seg, true_labels, dice=True) + \
