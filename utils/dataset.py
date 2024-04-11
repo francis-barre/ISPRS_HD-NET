@@ -25,14 +25,17 @@ mean_std_dict = {
 
 class BuildingDataset(Dataset):
     def __init__(self, dataset_dir, training=False,
-                 txt_name: str = "train.txt", data_name='WHU'):
+                 txt_name: str = "train.txt", data_name='WHU',
+                 predict=False, predict_txt_name='predict.txt',
+                 image_folder='train/image', label_folder='train/label',
+                 boundary_folder='boundary', dataset_folder='dataset'):
         self.name, self.mean, self.std, self.shuffix = mean_std_dict[data_name]
+        self.predict = predict
         if self.name == 'Mass':
             self.imgs_dir = os.path.join(dataset_dir, 'train', 'image')
             self.labels_dir = os.path.join(dataset_dir, 'train', 'label')
             self.dis_dir = os.path.join(dataset_dir, 'boundary')
-            txt_path = os.path.join(
-                dataset_dir, "dataset", txt_name)
+            txt_path = os.path.join(dataset_dir, dataset_folder, txt_name)
             assert os.path.exists(
                 txt_path), "file '{}' does not exist.".format(txt_path)
             with open(os.path.join(txt_path), "r") as f:
@@ -42,20 +45,21 @@ class BuildingDataset(Dataset):
             self.training = training
             self.images = [os.path.join(
                 self.imgs_dir, x + self.shuffix) for x in file_names]
-            self.labels = [os.path.join(
-                self.labels_dir, x + self.shuffix) for x in file_names]
-            self.dis = [os.path.join(self.dis_dir, x + '.mat')
-                        for x in file_names]
-            assert (len(self.images) == len(self.labels)) & (
-                len(self.images) == len(self.dis))
+            if not self.predict:
+                self.labels = [os.path.join(
+                    self.labels_dir, x + self.shuffix) for x in file_names]
+                self.dis = [os.path.join(self.dis_dir, x + '.mat')
+                            for x in file_names]
+                assert (len(self.images) == len(self.labels)) & (
+                    len(self.images) == len(self.dis))
 
             logging.info(f'Creating dataset with {len(self.images)} examples')
 
         else:
             # mode = txt_name.split(".")[0]
-            self.imgs_dir = os.path.join(dataset_dir, 'train', 'image')
-            self.labels_dir = os.path.join(dataset_dir, 'train', 'label')
-            self.dis_dir = os.path.join(dataset_dir, 'boundary')
+            self.imgs_dir = os.path.join(dataset_dir, image_folder)
+            self.labels_dir = os.path.join(dataset_dir, label_folder)
+            self.dis_dir = os.path.join(dataset_dir, boundary_folder)
             txt_path = os.path.join(dataset_dir, "dataset", txt_name)
             assert os.path.exists(
                 txt_path), "file '{}' does not exist.".format(txt_path)
@@ -66,13 +70,13 @@ class BuildingDataset(Dataset):
             self.training = training
             self.images = [os.path.join(
                 self.imgs_dir, x + self.shuffix) for x in file_names]
-            self.labels = [os.path.join(
-                self.labels_dir, x + self.shuffix) for x in file_names]
-
-            self.dis = [os.path.join(self.dis_dir, x + '.mat')
-                        for x in file_names]
-            assert (len(self.images) == len(self.labels)) & (
-                len(self.images) == len(self.dis))
+            if not self.predict:
+                self.labels = [os.path.join(
+                    self.labels_dir, x + self.shuffix) for x in file_names]
+                self.dis = [os.path.join(self.dis_dir, x + '.mat')
+                            for x in file_names]
+                assert (len(self.images) == len(self.labels)) & (
+                    len(self.images) == len(self.dis))
 
             logging.info(f'Creating dataset with {len(self.images)} examples')
 
@@ -96,13 +100,19 @@ class BuildingDataset(Dataset):
 
     def __getitem__(self, index):
         if self.name == 'Mass':
+            # img_file = self.images[index]
+            # img = np.array(Image.open(img_file))
+            # labels = readTif(self.labels[index])
+            # width = labels.RasterXSize
+            # height = labels.RasterYSize
+            # label = labels.ReadAsArray(0, 0, width, height)
+            # label = label[0, :, :] / 255
+
             img_file = self.images[index]
             img = np.array(Image.open(img_file))
-            labels = readTif(self.labels[index])
-            width = labels.RasterXSize
-            height = labels.RasterYSize
-            label = labels.ReadAsArray(0, 0, width, height)
-            label = label[0, :, :] / 255
+            label_file = self.labels[index]
+            label = np.array(Image.open(label_file).convert(
+                "P")).astype(np.int16) / 255.
         elif self.name == 'WHU':
             img_file = self.images[index]
             img = np.array(Image.open(img_file))
@@ -118,9 +128,11 @@ class BuildingDataset(Dataset):
         elif self.name == 'NOCI':
             img_file = self.images[index]
             img = np.array(Image.open(img_file))
-            label_file = self.labels[index]
-            label = np.array(Image.open(label_file).convert(
-                "P")).astype(np.int16) / 255.
+
+            if not self.predict:
+                label_file = self.labels[index]
+                label = np.array(Image.open(label_file).convert(
+                    "P")).astype(np.int16) / 255.
 
         # 利用_load_maps获取得到的distance_map和angle_map
         if self.training:
@@ -132,18 +144,25 @@ class BuildingDataset(Dataset):
 
             label, distance_map = label[0, :, :, 0], label[0, :, :, 1]
 
-        img, label = transF.to_tensor(
-            img.copy()), (transF.to_tensor(label.copy()) > 0).int()
+        img = transF.to_tensor(img.copy())
+
+        if not self.predict:
+            label = (transF.to_tensor(label.copy()) > 0).int()
         # 标准化
         img = transF.normalize(img, self.mean, self.std)
-        if self.training:
+        if self.training:  # training
             return {
                 'image': img.float(),
                 'label': label.float(),
                 'distance_map': distance_map,
                 'name': self.images[index]
             }
-        else:
+        elif self.predict:  # prediction
+            return {
+                'image': img.float(),
+                'name': self.images[index]
+            }
+        else:   # evaluation
             return {
                 'image': img.float(),
                 'label': label.float(),
