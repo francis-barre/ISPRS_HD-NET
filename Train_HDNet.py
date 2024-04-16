@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument("--read-name", default='')
     parser.add_argument("--save-name", default='HDNet_Inria_test')
     parser.add_argument("--DataSet", default='Inria')
+    parser.add_argument("--image-folder", default='train/image')
     args = parser.parse_args()
 
     return args
@@ -88,7 +89,8 @@ def train_net(read_name,
         dataset_dir=data_path,
         training=True,
         txt_name="train.txt",
-        data_name=args.DataSet)
+        data_name=args.DataSet,
+        image_folder=args.image_folder)
     valdataset = BuildingDataset(
         dataset_dir=data_path,
         training=False,
@@ -275,7 +277,7 @@ def main(args, dir_checkpoint='save_weights/'):
               epochs=args.epochs,
               batch_size=args.batch_size,
               lr=args.lr,
-              num_workers=args.numworkers
+              num_workers=args.numworkers,
               )
 
 

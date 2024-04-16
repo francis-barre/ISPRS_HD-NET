@@ -19,7 +19,9 @@ mean_std_dict = {
     'Inria': ['Inria', [0.42314604, 0.43858219, 0.40343547],
               [0.18447358, 0.16981384, 0.1629876], '.tif'],
     'NOCI': ['NOCI', [0.42538814, 0.42558973, 0.39810956],
-             [0.17131866, 0.15658791, 0.13814705], '.tif']
+             [0.17131866, 0.15658791, 0.13814705], '.tif'],
+    'NOCI_poor': ['NOCI_poor', [0.42538814, 0.42558973, 0.39810956],
+                  [0.17131866, 0.15658791, 0.13814705], '.tif'],
 }
 
 
@@ -125,7 +127,7 @@ class BuildingDataset(Dataset):
             label_file = self.labels[index]
             label = np.array(Image.open(label_file).convert(
                 "P")).astype(np.int16) / 255.
-        elif self.name == 'NOCI':
+        elif self.name == 'NOCI' or self.name == 'NOCI_poor':
             img_file = self.images[index]
             img = np.array(Image.open(img_file))
 
