@@ -1,4 +1,7 @@
-# HD-Net: High-Resolution Decoupled Network for Building Footprint Extraction via Deeply Supervised Body and Boundary Decomposition
+# This repositery is a fork of the HD-NET model, available at the following link: https://github.com/danfenghong/ISPRS_HD-Net/
+
+Original README:
+## HD-Net: High-Resolution Decoupled Network for Building Footprint Extraction via Deeply Supervised Body and Boundary Decomposition
 
 Yuxuan Li, [Danfeng Hong](https://scholar.google.com/citations?user=n7gL0_IAAAAJ&hl=en), Chenyu Li, [Jing Yao](https://scholar.google.com/citations?user=1SHd5ygAAAAJ&hl=en), [Jocelyn Chanussot](https://scholar.google.com/citations?user=6owK2OQAAAAJ&hl=en)
 
