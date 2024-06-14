@@ -82,7 +82,8 @@ def train_net(read_name,
               batch_size=1,
               lr=0.001,
               num_workers=24,
-              save_weights=True):
+              save_weights=True,
+              dir_pretrain='save_weights/pretrain/'):
     results_file = "results{}.txt".format(
         datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     traindataset = BuildingDataset(
@@ -123,7 +124,7 @@ def train_net(read_name,
 
     print('Learning rate: ', optimizer.state_dict()['param_groups'][0]['lr'])
 
-    if os.path.exists(os.path.join('save_weights', read_name + '.pth')):
+    if os.path.exists(os.path.join(dir_checkpoint, read_name + '.pth')):
         best_val_score = eval_net(
             net, val_loader, device, savename=DataSet + '_' + read_name)  #
         print('Best iou:', best_val_score)
@@ -205,9 +206,12 @@ def train_net(read_name,
             val_score = eval_net(net, val_loader, device)
 
             with open(results_file, "a") as f:
+                learning_rate = optimizer.state_dict()['param_groups'][0]['lr']
                 info = f"[epoch: {epoch}]\n" \
                        f"batch_loss: {loss.item():.4f}\n" \
-                       f"val_IoU: {val_score:.6f}\n"
+                       f"epoch_loss: {epoch_loss:.4f}\n" \
+                       f"val_IoU: {val_score:.6f}\n" \
+                       f"lr: {learning_rate}\n"
                 f.write(info + "\n\n")
 
             if val_score > best_val_score:
@@ -241,8 +245,7 @@ def train_net(read_name,
 def main(args, dir_checkpoint='save_weights/'):
     read_name = args.read_name
     save_name = args.save_name
-    Dataset = args.DataSet
-    assert Dataset in ['WHU', 'Inria', 'Mass', 'NOCI']
+    # Dataset = args.DataSet
     print(save_name)
     net = HighResolutionDecoupledNet(
         base_channel=args.base_channel, num_classes=args.num_classes)
