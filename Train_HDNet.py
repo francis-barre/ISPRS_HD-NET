@@ -131,8 +131,8 @@ def train_net(read_name,
 
     if os.path.exists(os.path.join(read_dir, read_name + '.pth')):
         best_val_score = eval_net(
-            net, val_loader, device, savename=DataSet + '_' + read_name)  #
-        print('Best iou:', best_val_score)[0]
+            net, val_loader, device, savename=DataSet + '_' + read_name)[0]  #
+        print('Best iou:', best_val_score)
         no_optim = 0
     else:
         print('Training new model....')
