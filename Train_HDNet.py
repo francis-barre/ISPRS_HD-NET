@@ -78,25 +78,30 @@ def train_net(read_name,
               data_path,
               args,
               dir_checkpoint='save_weights/',
+              read_dir='save_weights/',
               epochs=5,
               batch_size=1,
               lr=0.001,
               num_workers=24,
-              save_weights=True,
-              dir_pretrain='save_weights/pretrain/'):
+              save_weights=True):
     results_file = "results{}.txt".format(
         datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     traindataset = BuildingDataset(
         dataset_dir=data_path,
         training=True,
-        txt_name="train.txt",
+        txt_name=args.train_txt,
         data_name=args.DataSet,
-        image_folder=args.image_folder)
+        image_folder=args.image_folder,
+        label_folder=args.label_folder,
+        boundary_folder=args.boundary_folder)
     valdataset = BuildingDataset(
         dataset_dir=data_path,
         training=False,
-        txt_name="val.txt",
-        data_name=args.DataSet)
+        txt_name=args.val_txt,
+        data_name=args.DataSet,
+        image_folder=args.image_folder,
+        label_folder=args.label_folder,
+        boundary_folder=args.boundary_folder)
     train_loader = DataLoader(traindataset,
                               batch_size=batch_size,
                               shuffle=True,
@@ -124,10 +129,10 @@ def train_net(read_name,
 
     print('Learning rate: ', optimizer.state_dict()['param_groups'][0]['lr'])
 
-    if os.path.exists(os.path.join(dir_checkpoint, read_name + '.pth')):
+    if os.path.exists(os.path.join(read_dir, read_name + '.pth')):
         best_val_score = eval_net(
             net, val_loader, device, savename=DataSet + '_' + read_name)  #
-        print('Best iou:', best_val_score)
+        print('Best iou:', best_val_score)[0]
         no_optim = 0
     else:
         print('Training new model....')
@@ -242,8 +247,7 @@ def train_net(read_name,
     print("training time {}".format(total_time_str))
 
 
-def main(args, dir_checkpoint='save_weights/'):
-    read_name = args.read_name
+def main(args, dir_checkpoint='save_weights/', read_dir='save_weights/', read_name=''):
     save_name = args.save_name
     # Dataset = args.DataSet
     print(save_name)
@@ -261,7 +265,7 @@ def main(args, dir_checkpoint='save_weights/'):
     if read_name != '':
         net_state_dict = net.state_dict()
         state_dict = torch.load(
-            dir_checkpoint + read_name + '.pth', map_location=device)
+            read_dir + read_name + '.pth', map_location=device)
         net_state_dict.update(state_dict)
         net.load_state_dict(net_state_dict)
         logging.info('Model loaded from ' + read_name + '.pth')
@@ -269,13 +273,14 @@ def main(args, dir_checkpoint='save_weights/'):
     net = convert_model(net)
     net = torch.nn.parallel.DataParallel(net.to(device))
     torch.backends.cudnn.benchmark = True
-    train_net(read_name=args.read_name,
+    train_net(read_name=read_name,
               save_name=args.save_name,
               DataSet=args.DataSet,
               net=net,
               device=device,
               args=args,
               dir_checkpoint=dir_checkpoint,
+              read_dir=read_dir,
               data_path=args.data_path,
               epochs=args.epochs,
               batch_size=args.batch_size,

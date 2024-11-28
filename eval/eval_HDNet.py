@@ -110,16 +110,17 @@ def eval_net(net, loader, device, savename=''):
         # biou_total += biou(label_pred, label_true, 0.01)
         hist_boundary += boundary_hist(label_pred, label_true, 0.005, 2)
 
+    acc_R = np.diag(hist) / hist.sum(1) * 100
     IOU = (np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) -
                             np.diag(hist)))[-1]
     acc_global_OA = np.diag(hist).sum() / hist.sum()
-    acc_R = np.diag(hist) / hist.sum(1) * 100
     acc_P = np.diag(hist) / hist.sum(0) * 100
     F1score = 2 * acc_R * acc_P / (acc_R + acc_P)
     # avg_biou = biou_total / n_val  # calculate average BIOU
     BIOU = (np.diag(hist_boundary) / (hist_boundary.sum(axis=1) +
-                                      hist_boundary.sum(axis=0) -
-                                      np.diag(hist_boundary)))[-1]
+                                    hist_boundary.sum(axis=0) -
+                                    np.diag(hist_boundary)))[-1]
+
 
     print()
     print('IOU:', IOU)
@@ -130,6 +131,8 @@ def eval_net(net, loader, device, savename=''):
     # print('BIOU:', avg_biou)  # print average BIOU
     print('BIOU:', BIOU)  # print BIOU
     print('hist:', hist)
-    print('hist_boundary', hist_boundary)
+    print('hist_boundary:', hist_boundary)
 
-    return IOU
+    return IOU, {'IOU': IOU, 'OA': acc_global_OA, 'Recall': acc_R, 'Precision': acc_P, 'F1_score': F1score, 'BIOU': BIOU, 'hist': hist, 'hist_boundary': hist_boundary}
+
+
